@@ -1,0 +1,26 @@
+{
+  "name": "@frost-beta/clip",
+  "version": "0.0.1-dev",
+  "main": "clip.ts",
+  "scripts": {
+    "prepack": "tsc"
+  },
+  "author": "zcbenz",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/frost-beta/clip.js.git"
+  },
+  "bugs": {
+    "url": "https://github.com/frost-beta/clip.js/issues"
+  },
+  "devDependencies": {
+    "@types/node": "22.5.4",
+    "typescript": "5.6.2"
+  },
+  "dependencies": {
+    "@frost-beta/mlx": "0.0.17",
+    "@lenml/tokenizers": "1.0.9",
+    "tick-promise": "1.0.0"
+  }
+}
