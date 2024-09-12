@@ -9,10 +9,15 @@ export * from './model';
 
 // Return a tokenizer.
 export function loadTokenizer(dir: string) {
-  return TokenizerLoader.fromPreTrained({
+  const tokenizer = TokenizerLoader.fromPreTrained({
     tokenizerJSON: readJson(`${dir}/tokenizer.json`),
     tokenizerConfig: readJson(`${dir}/tokenizer_config.json`),
   });
+  return {
+    encode(text: string[]) {
+      return mx.stack(text.map(t => mx.array(tokenizer.encode(t))));
+    }
+  };
 }
 
 // Return the image processor.

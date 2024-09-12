@@ -1,9 +1,13 @@
 # Clip
 
+:construction:
+
 Node.js module for the clip model.
 
 Powered by [node-mlx](https://github.com/frost-beta/node-mlx), a machine
 learning framework for Node.js.
+
+## Usage
 
 Download model:
 

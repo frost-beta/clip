@@ -285,7 +285,7 @@ export class ClipVisionModel extends nn.Module {
       encoderStates.push(x);
     }
 
-    const poolerOutput = this.postLayernorm.forward(x.index(mx.Slice(), 1, mx.Slice()));
+    const poolerOutput = this.postLayernorm.forward(x.index(mx.Slice(), 0, mx.Slice()));
     return {
       poolerOutput,
       lastHiddenState: x,
