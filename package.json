@@ -1,7 +1,8 @@
 {
   "name": "@frost-beta/clip",
   "version": "0.0.1-dev",
-  "main": "clip.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "prepack": "tsc"
   },

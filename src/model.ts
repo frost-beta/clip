@@ -34,6 +34,12 @@ export interface ClipVisionOutput extends ClipTextOutput {
   hiddenStates?: mx.array;
 }
 
+export interface ClipModelInput {
+  inputIds?: mx.array;
+  pixelValues?: mx.array;
+  returnLoss?: boolean;
+}
+
 export interface ClipModelOutput {
   loss?: mx.array;
   textEmbeds?: mx.array;
@@ -318,15 +324,7 @@ export class ClipModel extends nn.Module {
     this.logitScale = mx.array(0.);
   }
 
-  getTextFeatures(x: mx.array): mx.array {
-    return this.textProjection.forward(this.textModel.forward(x).poolerOutput);
-  }
-
-  getImageFeatures(x: mx.array): mx.array {
-    return this.visualProjection.forward(this.visionModel.forward(x).poolerOutput);
-  }
-
-  forward({inputIds, pixelValues, returnLoss} : {inputIds?: mx.array, pixelValues?: mx.array, returnLoss?: boolean}): ClipModelOutput {
+  forward({inputIds, pixelValues, returnLoss} : ClipModelInput): ClipModelOutput {
     let textEmbeds, textModelOutput, imageEmbeds, visionModelOutput;
     if (inputIds) {
       textModelOutput = this.textModel.forward(inputIds);

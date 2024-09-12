@@ -2,13 +2,56 @@ import {readFileSync} from 'node:fs'
 import {TokenizerLoader} from '@lenml/tokenizers';
 import {core as mx} from '@frost-beta/mlx';
 
-import {ClipConfig, ClipModel} from './model';
+import {ClipConfig, ClipModelInput, ClipModel} from './model';
 import {PreprocessorConfig, ClipImageProcessor} from './image-processor';
 
 export * from './model';
 
-// Return a tokenizer.
-export function loadTokenizer(dir: string) {
+export interface ClipInput {
+  labels?: string[];
+  images?: Buffer[];
+}
+
+export interface ClipOutput {
+  labelEmbeddings?: mx.array;
+  imageEmbeddings?: mx.array;
+}
+
+/**
+ * Provide APIs around the CLIP model.
+ */
+export default class Clip {
+  tokenizer: Tokenizer;
+  imageProcessor: ClipImageProcessor;
+  model: ClipModel;
+
+  constructor(modelDir: string) {
+    this.tokenizer = loadTokenizer(modelDir);
+    this.imageProcessor = loadImageProcessor(modelDir);
+    this.model = loadModel(modelDir);
+  }
+
+  async computeEmbeddings({labels, images}: ClipInput): Promise<ClipOutput> {
+    const input: ClipModelInput = {};
+    if (labels)
+      input.inputIds = this.tokenizer.encode(labels);
+    if (images)
+      input.pixelValues = await this.imageProcessor.forward(images);
+    const output = this.model.forward(input);
+    return {
+      labelEmbeddings: output.textEmbeds,
+      imageEmbeddings: output.imageEmbeds,
+    };
+  }
+}
+
+// The tokenizer for encoding multiple strings.
+export interface Tokenizer {
+  encode(text: string[]): mx.array;
+}
+
+// Return the tokenizer.
+export function loadTokenizer(dir: string): Tokenizer {
   const tokenizer = TokenizerLoader.fromPreTrained({
     tokenizerJSON: readJson(`${dir}/tokenizer.json`),
     tokenizerConfig: readJson(`${dir}/tokenizer_config.json`),
@@ -29,7 +72,7 @@ export function loadImageProcessor(dir: string) {
 // Create the CLIP model.
 export function loadModel(dir: string) {
   // Read config files.
-  const configJson = JSON.parse(String(readFileSync(`${dir}/config.json`)));
+  const configJson = readJson(`${dir}/config.json`);
   const clipConfig = modelArgs(configJson) as ClipConfig;
   // Create model.
   const model = new ClipModel(clipConfig);
@@ -54,7 +97,7 @@ export function loadModel(dir: string) {
 }
 
 // Convert snake_case args into camelCase args.
-export function modelArgs(args: any): object{
+function modelArgs(args: any): object{
   if (Array.isArray(args))
     return args.map(v => modelArgs(v));
   if (typeof args != 'object')
@@ -67,6 +110,7 @@ export function modelArgs(args: any): object{
   return newArgs
 }
 
+// Helper for reading a .json file.
 function readJson(path: string) {
   return JSON.parse(String(readFileSync(path)));
 }

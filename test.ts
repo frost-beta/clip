@@ -1,28 +1,30 @@
 import {nn} from '@frost-beta/mlx';
 
-import {loadTokenizer, loadImageProcessor, loadModel} from './src/index.ts';
-
-const modelDir = 'weights-clip';
+import Clip from './src/index.ts';
 
 main();
 
 async function main() {
-  const tokenizer = loadTokenizer(modelDir);
-  const imageProcessor = loadImageProcessor(modelDir);
-  const model = loadModel(modelDir);
+  const images = await Promise.all([
+    download('https://d29fhpw069ctt2.cloudfront.net/photo/34910/preview/u3x7cekkS16ajjtJcb5L_DSC_5869_npreviews_9e55.jpg'),
+    download('https://d29fhpw069ctt2.cloudfront.net/photo/35183/preview/UzWklzFdRBSbkRKhEnvc_1-6128_npreviews_79e3.jpg'),
+  ]);
 
-  const output = model.forward({
-    inputIds: tokenizer.encode([
-      'a photo of a cat',
+  const clip = new Clip(process.argv[2] ?? 'weights-clip');
+  const output = await clip.computeEmbeddings({
+    labels: [
+      'a photo of a bird',
       'a photo of a dog',
-    ]),
-    pixelValues: await imageProcessor.forward([
-      '../mlx-examples/clip/assets/cat.jpeg',
-      '../mlx-examples/clip/assets/dog.jpeg',
-    ]),
+    ],
+    images,
   });
 
   console.log('Cosine similarity:',
-              nn.losses.cosineSimilarityLoss(output.textEmbeds,
-                                             output.imageEmbeds));
+              nn.losses.cosineSimilarityLoss(output.labelEmbeddings,
+                                             output.imageEmbeddings).tolist());
+}
+
+async function download(url) {
+  const response = await fetch(url);
+  return Buffer.from(await response.arrayBuffer());
 }

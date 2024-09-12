@@ -1,19 +1,31 @@
 # Clip
 
-:construction:
-
 Node.js module for the clip model.
 
 Powered by [node-mlx](https://github.com/frost-beta/node-mlx), a machine
 learning framework for Node.js.
 
-## Usage
+## APIs
 
-Download model:
+```typescript
+import { core as mx } from '@frost-beta/mlx';
 
-```console
-huggingface download --to weights-clip \
-                     --filter=*.json \
-                     --filter=*.safetensors \
-                     openai/clip-vit-large-patch14
+export interface ClipInput {
+    labels?: string[];
+    images?: Buffer[];
+}
+
+export interface ClipOutput {
+    labelEmbeddings?: mx.array;
+    imageEmbeddings?: mx.array;
+}
+
+export default class Clip {
+    constructor(modelDir: string);
+    computeEmbeddings({ labels, images }: ClipInput): Promise<ClipOutput>;
+}
 ```
+
+## License
+
+MIT

@@ -14,20 +14,31 @@ export interface PreprocessorConfig {
 export class ClipImageProcessor {
   constructor(private config: PreprocessorConfig) {}
 
-  async forward(paths: string[]) {
-    const tensors = await Promise.all(paths.map(i => this.preprocess(i)));
+  async forward(buffers: Buffer[]) {
+    const tensors = await Promise.all(buffers.map(i => this.preprocess(i)));
     return mx.stack(tensors);
   }
 
-  private async preprocess(path: string) {
-    let image = sharp(path);
-    if (this.config.doResize)
-      image = image.resize(this.config.size, this.config.size, {fit: 'outside'});
-    if (this.config.doCenterCrop)
-      image = await centerCrop(image, this.config.cropSize);
+  private async preprocess(buffer: Buffer) {
+    let image = sharp(buffer);
+    if (this.config.doResize && this.config.doCenterCrop && this.config.size == this.config.cropSize) {
+      // Fast path for resize and crop with same size.
+      image = image.resize(this.config.size, this.config.size);
+    } else {
+      // Slow path for doing resize and crop in 2 separate steps.
+      if (this.config.doResize)
+        image = image.resize(this.config.size, this.config.size, {fit: 'outside'});
+      if (this.config.doCenterCrop)
+        image = await centerCrop(image, this.config.cropSize);
+    }
+    // The model only works with RGB.
+    image = image.removeAlpha();
+    // Extract size and data.
     const {info, data} = await image.raw().toBuffer({resolveWithObject: true});
+    // The model expects the data to be a nested array.
     let tensor = mx.array(Array.from(data));
     tensor = tensor.reshape([ info.width, info.height, 3 ]);
+    // Normalize the tensor.
     tensor = rescale(tensor);
     if (this.config.doNormalize)
       tensor = normalize(tensor, this.config.imageMean, this.config.imageStd);
@@ -36,6 +47,7 @@ export class ClipImageProcessor {
 }
 
 async function centerCrop(image: sharp.Sharp, cropSize: number) {
+  // Have to call toBuffer to get the new size after resize.
   const {info} = await image.toBuffer({resolveWithObject: true});
   return image.extract({
     top: (info.height - cropSize) / 2,
