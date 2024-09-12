@@ -3,17 +3,22 @@ import {TokenizerLoader} from '@lenml/tokenizers';
 import {core as mx} from '@frost-beta/mlx';
 
 import {ClipConfig, ClipModel} from './model';
+import {PreprocessorConfig, ClipImageProcessor} from './image-processor';
 
 export * from './model';
 
 // Return a tokenizer.
 export function loadTokenizer(dir: string) {
-  const tokenizerJSON = readFileSync(`${dir}/tokenizer.json`);
-  const tokenizerConfig = readFileSync(`${dir}/tokenizer_config.json`);
   return TokenizerLoader.fromPreTrained({
-    tokenizerJSON: JSON.parse(String(tokenizerJSON)),
-    tokenizerConfig: JSON.parse(String(tokenizerConfig)),
+    tokenizerJSON: readJson(`${dir}/tokenizer.json`),
+    tokenizerConfig: readJson(`${dir}/tokenizer_config.json`),
   });
+}
+
+// Return the image processor.
+export function loadImageProcessor(dir: string) {
+  const json = readJson(`${dir}/preprocessor_config.json`);
+  return new ClipImageProcessor(modelArgs(json) as PreprocessorConfig);
 }
 
 // Create the CLIP model.
@@ -55,4 +60,8 @@ export function modelArgs(args: any): object{
     newArgs[newKey] = modelArgs(args[key]);
   }
   return newArgs
+}
+
+function readJson(path: string) {
+  return JSON.parse(String(readFileSync(path)));
 }

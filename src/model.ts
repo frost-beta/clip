@@ -85,16 +85,17 @@ class Attention extends nn.Module {
     const numHeads = this.numHeads;
     const [ B, L, D ] = queries.shape;
     const [  , S,   ] = keys.shape;
-    queries = queries.reshape(B, L, numHeads, -1).transpose(1, 2);
-    keys = keys.reshape(B, S, numHeads, -1).transpose(2, 3);
-    values = values.reshape(B, S, numHeads, -1).transpose(1, 2);
+    queries = queries.reshape(B, L, numHeads, -1).transpose(0, 2, 1, 3);
+    keys = keys.reshape(B, S, numHeads, -1).transpose(0, 2, 3, 1);
+    values = values.reshape(B, S, numHeads, -1).transpose(0, 2, 1, 3);
 
     const scale = Math.sqrt(1 / queries.shape.at(-1));
     let scores = mx.matmul(mx.multiply(queries, scale), keys);
     if (mask)
       scores = mx.add(scores, mask.astype(scores.dtype));
     scores = mx.softmax(scores, -1);
-    const valuesHat = mx.matmul(scores, values).transpose(1, 2).reshape(B, L, -1);
+    const valuesHat = mx.matmul(scores, values).transpose(0, 2, 1, 3)
+                                               .reshape(B, L, -1);
 
     return this.outProj.forward(valuesHat);
   }
@@ -173,9 +174,9 @@ class TextEmbeddings extends nn.Module {
   }
 
   forward(x: mx.array): mx.array {
-    const embeddings = this.tokenEmbedding.forward(x);
+    const embeddings = this.tokenEmbedding.forward(x.astype(mx.int32));
     return mx.add(embeddings,
-                  this.positionEmbedding.weight.index(mx.Slice(), x.shape[1]));
+                  this.positionEmbedding.weight.index(mx.Slice(null, x.shape[1])));
   }
 }
 
@@ -201,7 +202,7 @@ export class ClipTextModel extends nn.Module {
     const mask = nn.MultiHeadAttention.createAdditiveCausalMask(N, x.dtype);
     x = this.encoder.forward(x, mask);
     const lastHiddenState = this.finalLayerNorm.forward(x);
-    const poolerOutput = lastHiddenState.index(mx.arange(B), eotTokens);
+    const poolerOutput = lastHiddenState.index(mx.arange(B, mx.int32), eotTokens);
     return {poolerOutput, lastHiddenState};
   }
 }
@@ -361,8 +362,8 @@ function quickGelu(x: mx.array): mx.array {
 // Compute loss of CLIP model's output.
 function clipLoss(logits: mx.array): mx.array {
   const [ N, M ] = logits.shape;
-  const captionLoss = nn.losses.crossEntropy(logits, mx.arange(N), undefined, undefined, undefined, 'mean');
-  const imageLoss = nn.losses.crossEntropy(logits.T, mx.arange(M), undefined, undefined, undefined, 'mean');
+  const captionLoss = nn.losses.crossEntropy(logits, mx.arange(N, mx.int32), undefined, undefined, undefined, 'mean');
+  const imageLoss = nn.losses.crossEntropy(logits.T, mx.arange(M, mx.int32), undefined, undefined, undefined, 'mean');
   return mx.divide(mx.add(captionLoss, imageLoss),
                    2.0);
 }
