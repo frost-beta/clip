@@ -1,5 +1,3 @@
-import {nn} from '@frost-beta/mlx';
-
 import Clip from './src/index.ts';
 
 main();
@@ -10,18 +8,15 @@ async function main() {
     download('https://d29fhpw069ctt2.cloudfront.net/photo/35183/preview/UzWklzFdRBSbkRKhEnvc_1-6128_npreviews_79e3.jpg'),
   ]);
 
-  const clip = new Clip(process.argv[2] ?? 'weights-clip');
+  const clip = new Clip(process.argv[2] ?? 'clip-vit-large-patch14');
   const output = await clip.computeEmbeddings({
-    labels: [
-      'a photo of a bird',
-      'a photo of a dog',
-    ],
+    labels: [ 'seagull', 'lovely dog' ],
     images,
   });
 
   console.log('Cosine similarity:',
-              nn.losses.cosineSimilarityLoss(output.labelEmbeddings,
-                                             output.imageEmbeddings).tolist());
+              Clip.computeCosineSimilarities(output.labelEmbeddings!,
+                                             output.imageEmbeddings!));
 }
 
 async function download(url) {

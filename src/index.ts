@@ -1,6 +1,6 @@
 import {readFileSync} from 'node:fs'
 import {TokenizerLoader} from '@lenml/tokenizers';
-import {core as mx} from '@frost-beta/mlx';
+import {core as mx, nn} from '@frost-beta/mlx';
 
 import {ClipConfig, ClipModelInput, ClipModel} from './model';
 import {PreprocessorConfig, ClipImageProcessor} from './image-processor';
@@ -43,6 +43,14 @@ export default class Clip {
       imageEmbeddings: output.imageEmbeds,
     };
   }
+
+  static computeCosineSimilaritiy(a1: mx.array, a2: mx.array): number {
+    return nn.losses.cosineSimilarityLoss(a1, a2, 0).item() as number;
+  }
+
+  static computeCosineSimilarities(x1: mx.array, x2: mx.array): number[] {
+    return nn.losses.cosineSimilarityLoss(x1, x2, 1).tolist() as number[];
+  }
 }
 
 // The tokenizer for encoding multiple strings.
@@ -58,7 +66,8 @@ export function loadTokenizer(dir: string): Tokenizer {
   });
   return {
     encode(text: string[]) {
-      return mx.stack(text.map(t => mx.array(tokenizer.encode(t))));
+      const {input_ids} = tokenizer._call(text, {padding: true});
+      return mx.stack(input_ids as number[][]);
     }
   };
 }
