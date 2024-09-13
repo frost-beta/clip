@@ -1,6 +1,10 @@
 import sharp from 'sharp';
 import {core as mx} from '@frost-beta/mlx';
 
+export type BufferType = Buffer | ArrayBuffer | Uint8Array | Uint8ClampedArray |
+                         Int8Array | Uint16Array | Int16Array | Uint32Array |
+                         Int32Array | Float32Array | Float64Array;
+
 export interface PreprocessorConfig {
   cropSize: number,
   doCenterCrop: boolean,
@@ -14,12 +18,12 @@ export interface PreprocessorConfig {
 export class ClipImageProcessor {
   constructor(private config: PreprocessorConfig) {}
 
-  async forward(buffers: Buffer[]) {
+  async forward(buffers: BufferType[]) {
     const tensors = await Promise.all(buffers.map(i => this.preprocess(i)));
     return mx.stack(tensors);
   }
 
-  private async preprocess(buffer: Buffer) {
+  private async preprocess(buffer: BufferType) {
     let image = sharp(buffer);
     if (this.config.doResize && this.config.doCenterCrop && this.config.size == this.config.cropSize) {
       // Fast path for resize and crop with same size.

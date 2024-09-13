@@ -12,7 +12,7 @@ import { core as mx } from '@frost-beta/mlx';
 
 export interface ClipInput {
     labels?: string[];
-    images?: Buffer[];
+    images?: BufferType[];
 }
 
 export interface ClipOutput {

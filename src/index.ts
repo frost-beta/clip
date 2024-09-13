@@ -3,13 +3,13 @@ import {TokenizerLoader} from '@lenml/tokenizers';
 import {core as mx, nn} from '@frost-beta/mlx';
 
 import {ClipConfig, ClipModelInput, ClipModel} from './model';
-import {PreprocessorConfig, ClipImageProcessor} from './image-processor';
+import {BufferType, PreprocessorConfig, ClipImageProcessor} from './image-processor';
 
 export * from './model';
 
 export interface ClipInput {
   labels?: string[];
-  images?: Buffer[];
+  images?: BufferType[];
 }
 
 export interface ClipOutput {
