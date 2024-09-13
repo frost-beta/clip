@@ -22,6 +22,14 @@ jobs:
             arch: arm64
 
     steps:
+      - name: Install linux dependencies
+        if: matrix.os == 'linux' && matrix.arch == runner.arch
+        run: sudo apt-get install -y libblas-dev liblapack-dev liblapacke-dev
+
+      - name: Install mac dependencies
+        if: matrix.os == 'mac' && matrix.arch == 'x64'
+        run: brew install openblas
+
       - name: Checkout
         uses: actions/checkout@v4
 
