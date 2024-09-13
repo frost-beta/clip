@@ -20,7 +20,7 @@ export interface ClipOutput {
     imageEmbeddings?: mx.array;
 }
 
-export default class Clip {
+export class Clip {
     constructor(modelDir: string);
     computeEmbeddings({ labels, images }: ClipInput): Promise<ClipOutput>;
     static computeCosineSimilaritiy(a1: mx.array, a2: mx.array): number;

@@ -20,7 +20,7 @@ export interface ClipOutput {
 /**
  * Provide APIs around the CLIP model.
  */
-export default class Clip {
+export class Clip {
   tokenizer: Tokenizer;
   imageProcessor: ClipImageProcessor;
   model: ClipModel;

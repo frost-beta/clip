@@ -1,4 +1,4 @@
-import Clip from './src/index.ts';
+import {Clip} from './src/index.ts';
 
 main();
 
