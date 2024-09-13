@@ -4,7 +4,22 @@ on: push
 
 jobs:
   build:
-    runs-on: macos-14
+    runs-on: >-
+      ${{
+        (matrix.os == 'mac' && matrix.arch == 'arm64') &&
+          'macos-14' ||
+          (fromJson('{"linux":"ubuntu-22.04","mac":"macos-13","win":"windows-2022"}')[matrix.os])
+      }}
+    continue-on-error: false
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [linux, mac]
+        arch: [x64]
+        include:
+          - os: mac
+            arch: arm64
 
     steps:
       - name: Checkout
