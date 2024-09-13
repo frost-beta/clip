@@ -1,6 +1,7 @@
 {
   "name": "@frost-beta/clip",
   "version": "0.0.1-dev",
+  "description": "Compute embeddings of text/images with CLIP model",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -8,6 +9,7 @@
   },
   "author": "zcbenz",
   "license": "MIT",
+  "keywords": [ "mlx", "embeddings", "clip" ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/frost-beta/clip.js.git"
