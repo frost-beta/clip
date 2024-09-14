@@ -21,24 +21,26 @@ export interface ProcessedImage {
 export class ClipImageProcessor {
   constructor(private config: PreprocessorConfig) {}
 
+  async processImage(input: ImageInputType): Promise<ProcessedImage> {
+    let image = sharp(input);
+    if (this.config.doResize && this.config.doCenterCrop && this.config.size == this.config.cropSize) {
+      // Fast path for resize and crop with same size.
+      image = image.resize(this.config.size, this.config.size);
+    } else {
+      // Slow path for doing resize and crop in 2 separate steps.
+      if (this.config.doResize)
+        image = image.resize(this.config.size, this.config.size, {fit: 'outside'});
+      if (this.config.doCenterCrop)
+        image = await centerCrop(image, this.config.cropSize);
+    }
+    // The model only works with RGB.
+    image = image.removeAlpha();
+    // Extract size and data.
+    return await image.raw().toBuffer({resolveWithObject: true});
+  }
+
   processImages(inputs: ImageInputType[]): Promise<ProcessedImage[]> {
-    return Promise.all(inputs.map(async (input) => {
-      let image = sharp(input);
-      if (this.config.doResize && this.config.doCenterCrop && this.config.size == this.config.cropSize) {
-        // Fast path for resize and crop with same size.
-        image = image.resize(this.config.size, this.config.size);
-      } else {
-        // Slow path for doing resize and crop in 2 separate steps.
-        if (this.config.doResize)
-          image = image.resize(this.config.size, this.config.size, {fit: 'outside'});
-        if (this.config.doCenterCrop)
-          image = await centerCrop(image, this.config.cropSize);
-      }
-      // The model only works with RGB.
-      image = image.removeAlpha();
-      // Extract size and data.
-      return await image.raw().toBuffer({resolveWithObject: true});
-    }));
+    return Promise.all(inputs.map(this.processImage.bind(this)));
   }
 
   normalizeImages(images: ProcessedImage[]) {
