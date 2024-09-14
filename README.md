@@ -10,9 +10,16 @@ learning framework for Node.js.
 ```typescript
 import { core as mx } from '@frost-beta/mlx';
 
+export type ImageInputType = Buffer | ArrayBuffer | string;
+
+export interface ProcessedImage {
+    data: Buffer;
+    info: sharp.OutputInfo;
+}
+
 export interface ClipInput {
     labels?: string[];
-    images?: BufferType[];
+    images?: ProcessedImage[];
 }
 
 export interface ClipOutput {
@@ -22,7 +29,8 @@ export interface ClipOutput {
 
 export class Clip {
     constructor(modelDir: string);
-    computeEmbeddings({ labels, images }: ClipInput): Promise<ClipOutput>;
+    processImages(images: ImageInputType[]): Promise<ProcessedImage[]>;
+    computeEmbeddings({ labels, images }: ClipInput): ClipOutput;
     static computeCosineSimilaritiy(a1: mx.array, a2: mx.array): number;
     static computeCosineSimilarities(x1: mx.array, x2: mx.array): number[];
 }

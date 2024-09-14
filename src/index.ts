@@ -2,14 +2,24 @@ import {readFileSync} from 'node:fs'
 import {TokenizerLoader} from '@lenml/tokenizers';
 import {core as mx, nn} from '@frost-beta/mlx';
 
-import {ClipConfig, ClipModelInput, ClipModel} from './model';
-import {BufferType, PreprocessorConfig, ClipImageProcessor} from './image-processor';
+import {
+  ClipConfig,
+  ClipModelInput,
+  ClipModel,
+} from './model';
+import {
+  ImageInputType,
+  ProcessedImage,
+  PreprocessorConfig,
+  ClipImageProcessor,
+} from './image-processor';
 
 export * from './model';
+export * from './image-processor';
 
 export interface ClipInput {
   labels?: string[];
-  images?: BufferType[];
+  images?: ProcessedImage[];
 }
 
 export interface ClipOutput {
@@ -31,12 +41,16 @@ export class Clip {
     this.model = loadModel(modelDir);
   }
 
-  async computeEmbeddings({labels, images}: ClipInput): Promise<ClipOutput> {
+  processImages(images: ImageInputType[]): Promise<ProcessedImage[]> {
+    return this.imageProcessor.processImages(images);
+  }
+
+  computeEmbeddings({labels, images}: ClipInput): ClipOutput {
     const input: ClipModelInput = {};
     if (labels)
       input.inputIds = this.tokenizer.encode(labels);
     if (images)
-      input.pixelValues = await this.imageProcessor.forward(images);
+      input.pixelValues = this.imageProcessor.normalizeImages(images);
     const output = this.model.forward(input);
     return {
       labelEmbeddings: output.textEmbeds,
