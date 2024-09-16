@@ -31,8 +31,18 @@ export class Clip {
     constructor(modelDir: string);
     processImages(images: ImageInputType[]): Promise<ProcessedImage[]>;
     computeEmbeddings({ labels, images }: ClipInput): ClipOutput;
-    static computeCosineSimilaritiy(a1: mx.array, a2: mx.array): number;
-    static computeCosineSimilarities(x1: mx.array, x2: mx.array): number[];
+    /**
+     * Compute the cosine similarity between 2 embeddings.
+     */
+    static computeCosineSimilaritiy(a1: mx.array, a2: mx.array): mx.array;
+    /**
+     * Compute the cosine similarities between 2 arrays of embeddings.
+     *
+     * A tuple will be returned, with the first element being the cosine
+     * similarity scores, and the second element being the indices sorted by
+     * their scores from larger to smalller.
+     */
+    static computeCosineSimilarities(x1: mx.array | number[], x2: mx.array | number[]): [mx.array, mx.array];
 }
 ```
 

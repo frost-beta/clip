@@ -58,12 +58,29 @@ export class Clip {
     };
   }
 
-  static computeCosineSimilaritiy(a1: mx.array, a2: mx.array): number {
-    return nn.losses.cosineSimilarityLoss(a1, a2, 0).item() as number;
+  /**
+   * Compute the cosine similarity between 2 embeddings.
+   */
+  static computeCosineSimilaritiy(a1: mx.array, a2: mx.array): mx.array {
+    return nn.losses.cosineSimilarityLoss(a1, a2, 0);
   }
 
-  static computeCosineSimilarities(x1: mx.array, x2: mx.array): number[] {
-    return nn.losses.cosineSimilarityLoss(x1, x2, 1).tolist() as number[];
+  /**
+   * Compute the cosine similarities between 2 arrays of embeddings.
+   *
+   * A tuple will be returned, with the first element being the cosine
+   * similarity scores, and the second element being the indices sorted by
+   * their scores from larger to smalller.
+   */
+  static computeCosineSimilarities(x1: mx.array | number[],
+                                   x2: mx.array | number[]): [ mx.array, mx.array ] {
+    if (!(x1 instanceof mx.array))
+      x1 = mx.array(x1);
+    if (!(x2 instanceof mx.array))
+      x2 = mx.array(x1);
+    const scores = nn.losses.cosineSimilarityLoss(x1, x2, 1);
+    const indices = mx.argsort(scores).index(mx.Slice(null, null, -1));
+    return [ scores, indices ];
   }
 }
 

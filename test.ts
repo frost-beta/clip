@@ -12,9 +12,9 @@ async function main() {
     labels: [ 'seagull', 'lovely dog' ],
     images,
   });
-  console.log('Cosine similarity:',
-              Clip.computeCosineSimilarities(output.labelEmbeddings!,
-                                             output.imageEmbeddings!));
+  const [ scores, indices ] = Clip.computeCosineSimilarities(output.labelEmbeddings!,
+                                                             output.imageEmbeddings!);
+  console.log('Cosine similarity:', scores.tolist());
 }
 
 async function download(url) {
