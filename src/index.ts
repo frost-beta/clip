@@ -1,4 +1,4 @@
-import {readFileSync} from 'node:fs'
+import {statSync, readFileSync} from 'node:fs'
 import {TokenizerLoader} from '@lenml/tokenizers';
 import {core as mx, nn} from '@frost-beta/mlx';
 
@@ -35,7 +35,7 @@ export class Clip {
   #imageProcessor?: ClipImageProcessor;
   #model?: ClipModel;
 
-  constructor(public modelDir: string) {}
+  constructor(public modelDir: string, public batchSize?: number) {}
 
   get tokenizer() {
     if (!this.#tokenizer)
@@ -50,8 +50,17 @@ export class Clip {
   }
 
   get model() {
-    if (!this.#model)
+    if (!this.#model) {
+      if (this.batchSize) {
+        // When batchSize is hinted, we will set a cache limit. This is needed
+        // because the model can burst to use many RAM and MLX's cache memory
+        // will leave app's RAM usage at the peak. We should eventually fix the
+        // model but for now setting cache limit is enough.
+        const {size} = statSync(`${this.modelDir}/model.safetensors`);
+        mx.metal.setCacheLimit(size * (1 + this.batchSize));
+      }
       this.#model = loadModel(this.modelDir);
+    }
     return this.#model;
   }
 
