@@ -31,14 +31,28 @@ export interface ClipOutput {
  * Provide APIs around the CLIP model.
  */
 export class Clip {
-  tokenizer: Tokenizer;
-  imageProcessor: ClipImageProcessor;
-  model: ClipModel;
+  #tokenizer?: Tokenizer;
+  #imageProcessor?: ClipImageProcessor;
+  #model?: ClipModel;
 
-  constructor(modelDir: string) {
-    this.tokenizer = loadTokenizer(modelDir);
-    this.imageProcessor = loadImageProcessor(modelDir);
-    this.model = loadModel(modelDir);
+  constructor(public modelDir: string) {}
+
+  get tokenizer() {
+    if (!this.#tokenizer)
+      this.#tokenizer = loadTokenizer(this.modelDir);
+    return this.#tokenizer;
+  }
+
+  get imageProcessor() {
+    if (!this.#imageProcessor)
+      this.#imageProcessor = loadImageProcessor(this.modelDir);
+    return this.#imageProcessor;
+  }
+
+  get model() {
+    if (!this.#model)
+      this.#model = loadModel(this.modelDir);
+    return this.#model;
   }
 
   processImages(images: ImageInputType[]): Promise<ProcessedImage[]> {
