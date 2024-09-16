@@ -77,10 +77,12 @@ export class Clip {
    * and ensure the intermediate arrays are destroyed.
    */
   computeLabelEmbeddingsJs(labels: string[]): number[][] {
+    this.model;  // initialize model before mx.tidy
     return mx.tidy(() => this.computeEmbeddings({labels}).labelEmbeddings.tolist() as number[][]);
   }
 
   computeImageEmbeddingsJs(images: ProcessedImage[]): number[][] {
+    this.model;  // initialize model before mx.tidy
     return mx.tidy(() => this.computeEmbeddings({images}).imageEmbeddings.tolist() as number[][]);
   }
 
