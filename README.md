@@ -32,6 +32,12 @@ export class Clip {
     processImages(images: ImageInputType[]): Promise<ProcessedImage[]>;
     computeEmbeddings({ labels, images }: ClipInput): ClipOutput;
     /**
+     * Short hands of computeEmbeddings to convert results to JavaScript numbers
+     * and ensure the intermediate arrays are destroyed.
+     */
+    computeLabelEmbeddingsJs(labels: string[]): number[][];
+    computeImageEmbeddingsJs(images: ProcessedImage[]): number[][];
+    /**
      * Compute the cosine similarity between 2 embeddings.
      */
     static computeCosineSimilaritiy(a1: mx.array, a2: mx.array): mx.array;
@@ -42,7 +48,7 @@ export class Clip {
      * similarity scores, and the second element being the indices sorted by
      * their scores from larger to smalller.
      */
-    static computeCosineSimilarities(x1: mx.array | number[], x2: mx.array | number[]): [mx.array, mx.array];
+    static computeCosineSimilarities(x1: mx.array | number[][], x2: mx.array | number[][]): [mx.array, mx.array];
 }
 ```
 

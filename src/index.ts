@@ -59,6 +59,18 @@ export class Clip {
   }
 
   /**
+   * Short hands of computeEmbeddings to convert results to JavaScript numbers
+   * and ensure the intermediate arrays are destroyed.
+   */
+  computeLabelEmbeddingsJs(labels: string[]): number[][] {
+    return mx.tidy(() => this.computeEmbeddings({labels}).labelEmbeddings.tolist() as number[][]);
+  }
+
+  computeImageEmbeddingsJs(images: ProcessedImage[]): number[][] {
+    return mx.tidy(() => this.computeEmbeddings({images}).imageEmbeddings.tolist() as number[][]);
+  }
+
+  /**
    * Compute the cosine similarity between 2 embeddings.
    */
   static computeCosineSimilaritiy(a1: mx.array, a2: mx.array): mx.array {
@@ -72,12 +84,12 @@ export class Clip {
    * similarity scores, and the second element being the indices sorted by
    * their scores from larger to smalller.
    */
-  static computeCosineSimilarities(x1: mx.array | number[],
-                                   x2: mx.array | number[]): [ mx.array, mx.array ] {
+  static computeCosineSimilarities(x1: mx.array | number[][],
+                                   x2: mx.array | number[][]): [ mx.array, mx.array ] {
     if (!(x1 instanceof mx.array))
       x1 = mx.array(x1);
     if (!(x2 instanceof mx.array))
-      x2 = mx.array(x1);
+      x2 = mx.array(x2);
     const scores = nn.losses.cosineSimilarityLoss(x1, x2, 1);
     const indices = mx.argsort(scores).index(mx.Slice(null, null, -1));
     return [ scores, indices ];
